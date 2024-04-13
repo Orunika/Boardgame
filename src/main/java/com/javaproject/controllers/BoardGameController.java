@@ -2,31 +2,24 @@ package com.javaproject.controllers;
 
 import java.net.URI;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.apache.catalina.connector.Response;
-import org.hibernate.boot.model.relational.Database;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.javaproject.beans.BoardGame;
 import com.javaproject.beans.ErrorMessage;
-import com.javaproject.beans.Review;
 import com.javaproject.database.DatabaseAccess;
 
-// special type of controller that is specialized for REST purpose. It marshals our domain objects to and from json
 @RestController
 @RequestMapping("/boardgames")
 public class BoardGameController {
+
+    private static final Logger logger = Logger.getLogger(BoardGameController.class.getName());
 
     private DatabaseAccess da;
 
@@ -34,28 +27,20 @@ public class BoardGameController {
         this.da = da;
     }
 
-    /**
-     * Retrieve all boardgames
-     * 
-     * @return
-     */
     @GetMapping
     public List<BoardGame> getBoardGames() {
+        logger.log(Level.INFO, "Retrieving all board games");
         return da.getBoardGames();
     }
 
-    /**
-     * Handles requests for specific boardgame
-     * 
-     * @param id
-     * @return the ResponseEntity
-     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getBoardGame(@PathVariable Long id) {
+        logger.log(Level.INFO, "Retrieving board game with id: " + id);
         BoardGame boardGame = da.getBoardGame(id);
         if (boardGame != null) {
             return ResponseEntity.ok(boardGame);
         } else {
+            logger.log(Level.INFO, "Board game with id " + id + " not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage("No such record"));
         }
     }
@@ -66,10 +51,11 @@ public class BoardGameController {
             Long id = da.addBoardGame(boardGame);
             boardGame.setId(id);
             URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
+            logger.log(Level.INFO, "New board game added with id: " + id);
             return ResponseEntity.created(location).body(boardGame);
         } catch (Exception e) {
+            logger.log(Level.INFO, "Error occurred while adding board game", e);
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorMessage("Name already exists."));
         }
-
     }
 }

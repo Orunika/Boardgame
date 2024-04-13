@@ -31,10 +31,11 @@ function verify() {
         } else {
             okay2 = true;
         }
-        console.log('okay1: ' + okay + " okay2: " + okay2);
+        console.info('okay1: ' + okay + " okay2: " + okay2);
         return okay && okay2;
 
     } catch (err) {
+        console.error(err);
         alert(err);
     }
 }
